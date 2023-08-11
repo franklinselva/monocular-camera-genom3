@@ -1,0 +1,17 @@
+
+# pkg-config file for MonocularCamera interface and codels library
+#
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+idldir=@datadir@/idl
+
+Name: MonocularCamera-genom3
+Description: MonocularCamera interface and codels library
+Version: @PACKAGE_VERSION@
+Requires: felix-idl, vision-idl
+Cflags: -I${includedir} -I${idldir}
+Libs: -L${libdir} -lMonocularCamera_codels
+Libs.private: @codels_requires_LIBS@

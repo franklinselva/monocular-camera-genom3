@@ -1,0 +1,240 @@
+
+
+// This file was generated from camera.gen by the skeleton
+// template. Manual changes should be preserved, although they should
+// rather be added to the "doc" attributes of the genom objects defined in
+// camera.gen.
+
+= MonocularCamera component
+shasthamsa@laas.fr
+1.0
+:toc: left
+
+// fix default asciidoctor stylesheet issue #2407 and add hr clear rule
+ifdef::backend-html5[]
+[pass]
+++++
+<link rel="stylesheet" href="data:text/css,p{font-size: inherit !important}" >
+<link rel="stylesheet" href="data:text/css,hr{clear: both}" >
+++++
+endif::[]
+
+
+A GenoM module for monocular camera integration.
+
+
+== Ports
+
+
+[[ImageFrame]]
+=== ImageFrame (out)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or::sensor::frame` `ImageFrame`
+ ** `struct ::or::time::ts` `ts`
+ *** `long` `sec`
+ *** `long` `nsec`
+ ** `boolean` `compressed`
+ ** `unsigned short` `height`
+ ** `unsigned short` `width`
+ ** `unsigned short` `bpp`
+ ** `sequence< octet >` `pixels`
+
+|===
+
+The image frame from monocular camera.
+
+'''
+
+[[Intrinsics]]
+=== Intrinsics (out)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or::sensor::intrinsics` `Intrinsics`
+ ** `struct ::or::sensor::calibration` `calib`
+ *** `float` `fx`
+ *** `float` `fy`
+ *** `float` `cx`
+ *** `float` `cy`
+ *** `float` `gamma`
+ ** `struct ::or::sensor::distortion` `disto`
+ *** `float` `k1`
+ *** `float` `k2`
+ *** `float` `k3`
+ *** `float` `p1`
+ *** `float` `p2`
+
+|===
+
+'''
+
+[[Extrinsics]]
+=== Extrinsics (out)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or::sensor::extrinsics` `Extrinsics`
+ ** `struct ::or::sensor::translation` `trans`
+ *** `float` `tx`
+ *** `float` `ty`
+ *** `float` `tz`
+ ** `struct ::or::sensor::rotation` `rot`
+ *** `float` `roll`
+ *** `float` `pitch`
+ *** `float` `yaw`
+
+|===
+
+'''
+
+== Services
+
+[[publish_data]]
+=== publish_data (activity)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Throws
+[disc]
+ * `exception ::MonocularCamera::e_OUT_OF_MEM`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+ * `exception ::MonocularCamera::e_BAD_IMAGE_PORT`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+ * `exception ::MonocularCamera::e_OPENCV_ERROR`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+ * `exception ::MonocularCamera::e_BAD_CONFIG`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+a|.Context
+[disc]
+  * In task `<<publish>>`
+  (frequency 10.0 _Hz_)
+  * Updates port `<<ImageFrame>>`
+  * Updates port `<<Intrinsics>>`
+  * Updates port `<<Extrinsics>>`
+|===
+
+Publish monocular images with intrinsics and extrinsics.
+
+'''
+
+[[set_debug]]
+=== set_debug (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `boolean` `is_debug_mode` (default `"0"`) Set debug mode (default: false)
+
+|===
+
+Set the debug mode.
+
+'''
+
+[[show_image_frames]]
+=== show_image_frames (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `boolean` `show_cv_frames` (default `"0"`) Show image frames (default: false)
+
+|===
+
+Show image frames.
+
+'''
+
+[[set_verbose_level]]
+=== set_verbose_level (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `octet` `verbose_level` (default `"0"`) Verbose level
+
+|===
+
+Set the verbose level.
+
+'''
+
+[[set_device]]
+=== set_device (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<128>` `device` (default `"/dev/video0"`) Device path
+
+|===
+
+Set the device path.
+
+'''
+
+[[set_resolution]]
+=== set_resolution (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `short` `width` (default `"640"`) Image width
+
+ * `short` `height` (default `"480"`) Image height
+
+|===
+
+Set the image resolution.
+
+'''
+
+== Tasks
+
+[[publish]]
+=== publish
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 10.0 _Hz_
+a|.Throws
+[disc]
+ * `exception ::MonocularCamera::e_OUT_OF_MEM`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+ * `exception ::MonocularCamera::e_BAD_IMAGE_PORT`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+|===
+
+Publish from Monocular Camera.
+
+'''
