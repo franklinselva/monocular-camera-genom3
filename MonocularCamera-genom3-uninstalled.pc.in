@@ -8,6 +8,6 @@ includedir=${prefix}/codels
 Name: MonocularCamera-genom3
 Description: MonocularCamera interface and codels library
 Version: @PACKAGE_VERSION@
-Requires: felix-idl, vision-idl
+Requires: felix-idl, vision-idl, genom3 >= 2.99.26
 Libs: ${libdir}/libMonocularCamera_codels.la
 Libs.private: @codels_requires_LIBS@

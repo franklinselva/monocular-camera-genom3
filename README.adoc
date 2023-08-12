@@ -27,7 +27,7 @@ A GenoM module for monocular camera integration.
 
 
 [[ImageFrame]]
-=== ImageFrame (out)
+=== ImageFrame (multiple out)
 
 
 [role="small", width="50%", float="right", cols="1"]
@@ -100,8 +100,8 @@ a|.Data structure
 
 == Services
 
-[[publish_data]]
-=== publish_data (activity)
+[[CameraPublish]]
+=== CameraPublish (activity)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
@@ -132,7 +132,7 @@ a|.Context
   * Updates port `<<Extrinsics>>`
 |===
 
-Publish monocular images with intrinsics and extrinsics.
+Publish from Monocular Camera.
 
 '''
 
@@ -188,7 +188,7 @@ Set the verbose level.
 |===
 a|.Inputs
 [disc]
- * `string<128>` `device` (default `"/dev/video0"`) Device path
+ * `string<128>` `device_id` (default `"/dev/video0"`) Device path
 
 |===
 
@@ -213,6 +213,21 @@ Set the image resolution.
 
 '''
 
+[[set_compression]]
+=== set_compression (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `short` `compression_percent` (default `"-1"`) Compression ration in percentage (0 - 100) (-1 for no compresstion)
+
+|===
+
+Set the compression ratio.
+
+'''
+
 == Tasks
 
 [[publish]]
@@ -223,6 +238,9 @@ Set the image resolution.
 a|.Context
 [disc]
   * Frequency 10.0 _Hz_
+* Updates port `<<ImageFrame>>`
+* Updates port `<<Intrinsics>>`
+* Updates port `<<Extrinsics>>`
 a|.Throws
 [disc]
  * `exception ::MonocularCamera::e_OUT_OF_MEM`

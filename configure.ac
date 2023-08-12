@@ -13,6 +13,7 @@ dnl Compilers
 dnl
 LT_INIT([disable-static])
 AC_PROG_CC
+AC_PROG_CXX
 
 
 dnl Require GNU make
@@ -30,6 +31,7 @@ PKG_CHECK_MODULES(requires, [
   genom3 >= 2.99.4
   felix-idl
   vision-idl
+  genom3 >= 2.99.26
 ])
 PKG_CHECK_MODULES(codels_requires, [
   opencv4, felix-g3utils, vision-idl

@@ -2,8 +2,8 @@
 lib_LTLIBRARIES = libMonocularCamera_codels.la
 
 libMonocularCamera_codels_la_SOURCES  =	MonocularCamera_c_types.h
-libMonocularCamera_codels_la_SOURCES +=	MonocularCamera_codels.c
-libMonocularCamera_codels_la_SOURCES +=	MonocularCamera_publish_codels.c
+libMonocularCamera_codels_la_SOURCES +=	MonocularCamera_codels.cc
+libMonocularCamera_codels_la_SOURCES +=	MonocularCamera_publish_codels.cc
 
 libMonocularCamera_codels_la_CPPFLAGS =	$(requires_CFLAGS)
 libMonocularCamera_codels_la_LIBADD   =	$(requires_LIBS)

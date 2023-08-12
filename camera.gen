@@ -26,6 +26,7 @@ component MonocularCamera {
   version "1.0";
   email	  "shasthamsa@laas.fr";
   lang	  "c";
+  require "genom3 >= 2.99.26";
   doc 	  "A GenoM module for monocular camera integration.";
 
   codels-require "opencv4, felix-g3utils, vision-idl";
@@ -35,19 +36,31 @@ component MonocularCamera {
   exception e_OUT_OF_MEM { short code; string<128> message; };
   exception e_BAD_CONFIG { short code; string<128> message; };
 
+  struct CameraInfo {
+        struct size_s {
+            unsigned short w, h;
+        } size;
+        unsigned short frequency;
+        string<8> format;   // Y8, Y16, RBG8, RGBA8...
+        string<128> device;
+
+        boolean started;
+        short compression_rate;
+        float hfov;
+  };
+
   /* -------------------------- IDS --------------------------- */
   ids {
-    or::sensor::intrinsics intrinsics;	        // Camera intrinsics
-    or::sensor::extrinsics extrinsics;	        // Camera extrinsics
-    or::sensor::frame image_frame;		        // Image frame
+    CameraInfo info;
 
     boolean debug, show_frames;
+    octet image_width, image_height;
     octet v_level;
   };
 
   /* ------------- DEFINITION OF PORTS -------------- */
   // Camera
-  port out or::sensor::frame ImageFrame {
+  port multiple out or::sensor::frame ImageFrame {
     doc "The image frame from monocular camera.";
   };
   port out or::sensor::intrinsics Intrinsics;
@@ -63,18 +76,21 @@ component MonocularCamera {
 
   /* ------------------ ACTIVITY DEFINITION --------------------- */
 
-  activity publish_data() {
-    doc "Publish monocular images with intrinsics and extrinsics.";
+  activity CameraPublish() {
+    doc "Publish from Monocular Camera.";
     after set_device, set_resolution;
     task publish;
 
-    codel <start> InitIDS(ids out image_frame, ids out intrinsics, ids out extrinsics, ids in debug)
-          yield pause::start, main, ether;
-    codel <main> PublishCamera(ids in image_frame, ids in intrinsics, ids in extrinsics, port out ImageFrame, port out Intrinsics, port out Extrinsics,
-          ids in debug, ids in show_frames)
-          yield main, ether;
+    codel<start> camera_start(out ::ids, port out ImageFrame, port out Extrinsics, port out Intrinsics)
+        yield wait, pause::start;
 
-    throw e_BAD_IMAGE_PORT, e_OPENCV_ERROR, e_BAD_CONFIG, e_OUT_OF_MEM;
+    async codel<wait> camera_wait(ids in info.started)
+        yield pause::wait, wait, pub;
+
+    codel<pub> camera_publish(ids in info, port out ImageFrame)
+        yield wait;
+
+        throw e_OUT_OF_MEM, e_BAD_IMAGE_PORT;
   };
 
   /* ------------------ SERVICE DEFINITION: Attributes -------------------- */
@@ -96,13 +112,18 @@ component MonocularCamera {
     codel SetVerboseLevel(local in verbose_level, ids out v_level);
   };
 
-  function set_device(in string<128> device = "/dev/video0" : "Device path") {
+  function set_device(in string<128> device_id = "/dev/video0" : "Device path") {
     doc "Set the device path.";
-    codel SetDevice(local in device, ids out image_frame);
+    codel SetDevice(local in device_id, ids out info.device);
   };
 
   function set_resolution(in short width = 640 : "Image width", in short height = 480 : "Image height") {
     doc "Set the image resolution.";
-    codel SetResolution(local in width, local in height, ids out image_frame);
+    codel SetResolution(local in width, local in height, ids out info.size);
+  };
+
+  function set_compression(in short compression_percent = -1 : "Compression ration in percentage (0 - 100) (-1 for no compresstion)") {
+    doc "Set the compression ratio.";
+    codel SetCompression(local in compression_percent, ids out info.compression_rate);
   };
 };

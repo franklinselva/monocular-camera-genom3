@@ -3,7 +3,6 @@
 
 #include "MonocularCamera_c_types.h"
 
-
 /* --- Function set_debug ----------------------------------------------- */
 
 /** Codel SetDebug of function set_debug.
@@ -13,10 +12,9 @@
 genom_event
 SetDebug(bool is_debug_mode, bool *debug, const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
+  *debug = is_debug_mode;
+  return genom_ok;
 }
-
 
 /* --- Function show_image_frames --------------------------------------- */
 
@@ -28,10 +26,9 @@ genom_event
 ShowFrames(bool show_cv_frames, bool *show_frames,
            const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
+  *show_frames = show_cv_frames;
+  return genom_ok;
 }
-
 
 /* --- Function set_verbose_level --------------------------------------- */
 
@@ -43,10 +40,9 @@ genom_event
 SetVerboseLevel(uint8_t verbose_level, uint8_t *v_level,
                 const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
+  *v_level = verbose_level;
+  return genom_ok;
 }
-
 
 /* --- Function set_device ---------------------------------------------- */
 
@@ -55,13 +51,12 @@ SetVerboseLevel(uint8_t verbose_level, uint8_t *v_level,
  * Returns genom_ok.
  */
 genom_event
-SetDevice(const char device[128], or_sensor_frame *image_frame,
+SetDevice(const char device_id[128], char device[128],
           const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
+  strncpy(device, device_id, sizeof(device));
+  return genom_ok;
 }
-
 
 /* --- Function set_resolution ------------------------------------------ */
 
@@ -71,8 +66,24 @@ SetDevice(const char device[128], or_sensor_frame *image_frame,
  */
 genom_event
 SetResolution(int16_t width, int16_t height,
-              or_sensor_frame *image_frame, const genom_context self)
+              MonocularCamera_CameraInfo_size_s *size,
+              const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
+  size->w = width;
+  size->h = height;
+  return genom_ok;
+}
+
+/* --- Function set_compression ----------------------------------------- */
+
+/** Codel SetCompression of function set_compression.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+SetCompression(int16_t compression_percent, int16_t *compression_rate,
+               const genom_context self)
+{
+  *compression_rate = compression_percent;
+  return genom_ok;
 }
