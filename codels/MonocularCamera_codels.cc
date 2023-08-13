@@ -2,6 +2,35 @@
 #include "acMonocularCamera.h"
 
 #include "MonocularCamera_c_types.h"
+#include <opencv2/opencv.hpp>
+#include "fg3utils/trace_f.h"
+#include "fg3utils/macros.h"
+
+/* --- Activity start_camera -------------------------------------------- */
+
+/** Validation codel check_device of activity start_camera.
+ *
+ * Returns genom_ok.
+ * Throws MonocularCamera_e_OUT_OF_MEM,
+ * MonocularCamera_e_BAD_IMAGE_PORT, MonocularCamera_e_BAD_CONFIG.
+ */
+genom_event
+check_device(const char device[128], const genom_context self)
+{
+  cv::VideoCapture cap(device);
+  if (!cap.isOpened())
+  {
+    char msg[128];
+    snprintf(msg, sizeof(msg), "Failed to open camera device %s", device);
+    CODEL_LOG_ERROR(msg);
+    MonocularCamera_e_OPENCV_ERROR_detail *d;
+    snprintf(d->message, sizeof(d->message), "%s", msg);
+    return MonocularCamera_e_OPENCV_ERROR(d, self);
+  }
+
+  cap.release();
+  return genom_ok;
+}
 
 /* --- Function set_debug ----------------------------------------------- */
 
@@ -23,10 +52,9 @@ SetDebug(bool is_debug_mode, bool *debug, const genom_context self)
  * Returns genom_ok.
  */
 genom_event
-ShowFrames(bool show_cv_frames, bool *show_frames,
-           const genom_context self)
+ShowFrames(bool *show_frames, const genom_context self)
 {
-  *show_frames = show_cv_frames;
+  *show_frames = true;
   return genom_ok;
 }
 
@@ -54,7 +82,7 @@ genom_event
 SetDevice(const char device_id[128], char device[128],
           const genom_context self)
 {
-  strncpy(device, device_id, sizeof(device));
+  device = const_cast<char *>(device_id);
   return genom_ok;
 }
 

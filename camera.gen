@@ -42,7 +42,6 @@ component MonocularCamera {
         } size;
         unsigned short frequency;
         string<8> format;   // Y8, Y16, RBG8, RGBA8...
-        string<128> device;
 
         boolean started;
         short compression_rate;
@@ -52,70 +51,82 @@ component MonocularCamera {
   /* -------------------------- IDS --------------------------- */
   ids {
     CameraInfo info;
+    string<128> device;
 
     boolean debug, show_frames;
     octet image_width, image_height;
-    octet v_level;
+    octet verbose_level;
   };
 
   /* ------------- DEFINITION OF PORTS -------------- */
   // Camera
-  port multiple out or::sensor::frame ImageFrame {
+  port multiple out or::sensor::frame Frame {
     doc "The image frame from monocular camera.";
   };
-  port out or::sensor::intrinsics Intrinsics;
-  port out or::sensor::extrinsics Extrinsics;
+  port out or::sensor::intrinsics Intrinsics {
+    doc "The intrinsics of the camera.";
+  };
+  port out or::sensor::extrinsics Extrinsics {
+    doc "The extrinsics of the camera.";
+  };
 
   /* ------------------ TASK DEFINITION -------------------- */
   task publish {
     period 100 ms;
     doc "Publish from Monocular Camera.";
 
+    codel<start> camera_start(ids inout info, ids in device, port out Frame, port out Extrinsics, port out Intrinsics, ids in debug)
+        yield pub, pause::start;
+
+    codel<pub> camera_publish(ids in info, port out Frame, port out Extrinsics, port out Intrinsics, ids in show_frames, ids in debug)
+        yield pub, pause::pub, ether;
+
     throw e_OUT_OF_MEM, e_BAD_IMAGE_PORT;
   };
 
   /* ------------------ ACTIVITY DEFINITION --------------------- */
-
-  activity CameraPublish() {
-    doc "Publish from Monocular Camera.";
-    after set_device, set_resolution;
+  activity start_camera() {
+    doc "Start the camera.";
     task publish;
+    before stop_camera;
+    after set_device, set_resolution;
+    validate check_device(ids in device);
 
-    codel<start> camera_start(out ::ids, port out ImageFrame, port out Extrinsics, port out Intrinsics)
-        yield wait, pause::start;
+    codel<start> StartCamera(ids out info.started)
+        yield ether;
 
-    async codel<wait> camera_wait(ids in info.started)
-        yield pause::wait, wait, pub;
+    throws e_BAD_CONFIG;
+  };
 
-    codel<pub> camera_publish(ids in info, port out ImageFrame)
-        yield wait;
+  activity stop_camera() {
+    doc "Stop the camera.";
+    task publish;
+    after start_camera;
 
-        throw e_OUT_OF_MEM, e_BAD_IMAGE_PORT;
+    codel<start> StopCamera(ids out info.started)
+        yield ether;
+
+    throws e_BAD_CONFIG;
   };
 
   /* ------------------ SERVICE DEFINITION: Attributes -------------------- */
+  attribute set_debug(in debug = FALSE : "Enable debug (default: false)" ) {
+    doc "Set the debug mode.";
+  };
 
+  attribute show_image_frames(in show_frames = TRUE : "Enable image frames (default: true)") {
+    doc "Show image frames.";
+  };
+
+  attribute set_verbose_level(in verbose_level = 0 : "Verbose level") {
+    doc "Set the verbose level.";
+  };
+
+  attribute set_device(in device = "/dev/video0" : "Device path") {
+    doc "Set the device path.";
+  };
 
   /* ------------------ SERVICE DEFINITION: Functions -------------------- */
-  function set_debug(in boolean is_debug_mode = FALSE : "Set debug mode (default: false)" ) {
-    doc "Set the debug mode.";
-    codel SetDebug(local in is_debug_mode, ids out debug);
-  };
-
-  function show_image_frames(in boolean show_cv_frames = FALSE : "Show image frames (default: false)" ) {
-    doc "Show image frames.";
-    codel ShowFrames(local in show_cv_frames, ids out show_frames);
-  };
-
-  function set_verbose_level(in octet verbose_level = 0 : "Verbose level") {
-    doc "Set the verbose level.";
-    codel SetVerboseLevel(local in verbose_level, ids out v_level);
-  };
-
-  function set_device(in string<128> device_id = "/dev/video0" : "Device path") {
-    doc "Set the device path.";
-    codel SetDevice(local in device_id, ids out info.device);
-  };
 
   function set_resolution(in short width = 640 : "Image width", in short height = 480 : "Image height") {
     doc "Set the image resolution.";

@@ -5,46 +5,47 @@
 #include "fg3utils/macros.h"
 #include "MonocularCamera_c_types.h"
 #include <opencv2/opencv.hpp>
+#include <chrono>
 
 /* --- Setup ---------------------------------------------------------*/
 cv::VideoCapture *cap;
 
 /* --- Task publish ----------------------------------------------------- */
 
-/* --- Activity CameraPublish ------------------------------------------- */
-
-/** Codel camera_start of activity CameraPublish.
+/** Codel camera_start of task publish.
  *
  * Triggered by MonocularCamera_start.
- * Yields to MonocularCamera_wait, MonocularCamera_pause_start.
+ * Yields to MonocularCamera_pub, MonocularCamera_pause_start.
  * Throws MonocularCamera_e_OUT_OF_MEM,
  *        MonocularCamera_e_BAD_IMAGE_PORT.
  */
 genom_event
-camera_start(MonocularCamera_ids *ids,
-             const MonocularCamera_ImageFrame *ImageFrame,
+camera_start(MonocularCamera_CameraInfo *info, const char device[128],
+             const MonocularCamera_Frame *Frame,
              const MonocularCamera_Extrinsics *Extrinsics,
-             const MonocularCamera_Intrinsics *Intrinsics,
+             const MonocularCamera_Intrinsics *Intrinsics, bool debug,
              const genom_context self)
 {
-  ids->info.started = false;
-  cap = new cv::VideoCapture(ids->info.device);
-  if (!cap->isOpened())
+  if (!info->started)
   {
-    char msg[128];
-    snprintf(msg, sizeof(msg), "Failed to open camera device %s", ids->info.device);
-    CODEL_LOG_ERROR(msg);
+    if (debug)
+    {
+      CODEL_LOG_WARNING("Camera not started");
+    }
     return MonocularCamera_pause_start;
   }
 
-  ImageFrame->data("raw", self)->width = ids->info.size.w;
-  ;
-  ImageFrame->data("raw", self)->height = ids->info.size.h;
-  ImageFrame->data("raw", self)->bpp = 3;
-  ImageFrame->data("raw", self)->compressed = false;
+  cap = new cv::VideoCapture(device);
+  Frame->open("raw", self);
+  Frame->open("compress", self);
 
-  auto pixel_length = ids->info.size.w * ids->info.size.h * ImageFrame->data("raw", self)->bpp;
-  if (genom_sequence_reserve(&(ImageFrame->data("raw", self)->pixels), pixel_length) == -1)
+  Frame->data("raw", self)->width = info->size.w;
+  Frame->data("raw", self)->height = info->size.h;
+  Frame->data("raw", self)->bpp = 3;
+  Frame->data("raw", self)->compressed = false;
+
+  auto pixel_length = info->size.w * info->size.h * Frame->data("raw", self)->bpp;
+  if (genom_sequence_reserve(&(Frame->data("raw", self)->pixels), pixel_length) == -1)
   {
     MonocularCamera_e_OUT_OF_MEM_detail d;
     snprintf(d.message, sizeof(d.message), "unable to allocate frame memory");
@@ -52,11 +53,11 @@ camera_start(MonocularCamera_ids *ids,
     return MonocularCamera_e_OUT_OF_MEM(&d, self);
   }
 
-  ImageFrame->data("compressed", self)->width = cap->get(cv::CAP_PROP_FRAME_WIDTH);
-  ImageFrame->data("compressed", self)->height = cap->get(cv::CAP_PROP_FRAME_HEIGHT);
-  ImageFrame->data("compressed", self)->bpp = 3;
-  ImageFrame->data("compressed", self)->compressed = true;
-  if (genom_sequence_reserve(&(ImageFrame->data("compressed", self)->pixels), pixel_length) == -1)
+  Frame->data("compress", self)->width = info->size.w;
+  Frame->data("compress", self)->height = info->size.h;
+  Frame->data("compress", self)->bpp = 3;
+  Frame->data("compress", self)->compressed = true;
+  if (genom_sequence_reserve(&(Frame->data("compress", self)->pixels), pixel_length) == -1)
   {
     MonocularCamera_e_OUT_OF_MEM_detail d;
     snprintf(d.message, sizeof(d.message), "unable to allocate frame memory");
@@ -64,36 +65,124 @@ camera_start(MonocularCamera_ids *ids,
     return MonocularCamera_e_OUT_OF_MEM(&d, self);
   }
 
-  return MonocularCamera_wait;
+  return MonocularCamera_pub;
 }
 
-/** Codel camera_wait of activity CameraPublish.
- *
- * Triggered by MonocularCamera_wait.
- * Yields to MonocularCamera_pause_wait, MonocularCamera_wait,
- *           MonocularCamera_pub.
- * Throws MonocularCamera_e_OUT_OF_MEM,
- *        MonocularCamera_e_BAD_IMAGE_PORT.
- */
-genom_event
-camera_wait(bool started, const genom_context self)
-{
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return MonocularCamera_pub;
-}
-
-/** Codel camera_publish of activity CameraPublish.
+/** Codel camera_publish of task publish.
  *
  * Triggered by MonocularCamera_pub.
- * Yields to MonocularCamera_wait.
+ * Yields to MonocularCamera_pub, MonocularCamera_pause_pub,
+ *           MonocularCamera_ether.
  * Throws MonocularCamera_e_OUT_OF_MEM,
  *        MonocularCamera_e_BAD_IMAGE_PORT.
  */
 genom_event
 camera_publish(const MonocularCamera_CameraInfo *info,
-               const MonocularCamera_ImageFrame *ImageFrame,
-               const genom_context self)
+               const MonocularCamera_Frame *Frame,
+               const MonocularCamera_Extrinsics *Extrinsics,
+               const MonocularCamera_Intrinsics *Intrinsics,
+               bool show_frames, bool debug, const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return MonocularCamera_wait;
+
+  or_sensor_frame *raw_frame = Frame->data("raw", self);
+  or_sensor_frame *compress_frame = Frame->data("compress", self);
+
+  if (!cap->isOpened())
+  {
+    CODEL_LOG_WARNING("Camera not started");
+    return MonocularCamera_pause_pub;
+  }
+
+  cv::Mat frame;
+  *cap >> frame;
+
+  if (frame.empty())
+  {
+    CODEL_LOG_WARNING("Camera frame empty");
+    return MonocularCamera_pause_pub;
+  }
+
+  if (frame.cols != raw_frame->width || frame.rows != raw_frame->height)
+  {
+    char msg[128];
+    snprintf(msg, sizeof(msg), "Camera frame size mismatch: expected %dx%d, got %dx%d",
+             raw_frame->width, raw_frame->height,
+             frame.cols, frame.rows);
+    CODEL_LOG_ERROR(msg);
+    return MonocularCamera_pause_pub;
+  }
+
+  memcpy(raw_frame->pixels._buffer, frame.data, raw_frame->pixels._length);
+  raw_frame->ts.sec = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  raw_frame->ts.nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 1000000000;
+  raw_frame->compressed = false;
+  raw_frame->pixels._length = frame.cols * frame.rows * frame.channels();
+
+  if (info->compression_rate > 0)
+  {
+    std::vector<uchar> compressed;
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(info->compression_rate);
+
+    cv::imencode(".jpg", frame, compressed, compression_params);
+
+    compress_frame->width = raw_frame->width;
+    compress_frame->height = raw_frame->height;
+    compress_frame->bpp = raw_frame->bpp;
+    compress_frame->compressed = true;
+    compress_frame->pixels._length = compressed.size();
+    compress_frame->pixels._buffer = compressed.data();
+    compress_frame->ts.sec = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    compress_frame->ts.nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 1000000000;
+  }
+
+  if (show_frames)
+  {
+    cv::imshow("frame", frame);
+    cv::waitKey(1);
+  }
+  else
+  {
+    cv::destroyAllWindows();
+  }
+
+  Frame->write("raw", self);
+  Frame->write("compress", self);
+
+  return MonocularCamera_pub;
+}
+
+/* --- Activity start_camera -------------------------------------------- */
+
+/** Codel StartCamera of activity start_camera.
+ *
+ * Triggered by MonocularCamera_start.
+ * Yields to MonocularCamera_ether.
+ * Throws MonocularCamera_e_OUT_OF_MEM,
+ *        MonocularCamera_e_BAD_IMAGE_PORT,
+ *        MonocularCamera_e_BAD_CONFIG.
+ */
+genom_event
+StartCamera(bool *started, const genom_context self)
+{
+  *started = true;
+  return MonocularCamera_ether;
+}
+
+/* --- Activity stop_camera --------------------------------------------- */
+
+/** Codel StopCamera of activity stop_camera.
+ *
+ * Triggered by MonocularCamera_start.
+ * Yields to MonocularCamera_ether.
+ * Throws MonocularCamera_e_OUT_OF_MEM,
+ *        MonocularCamera_e_BAD_IMAGE_PORT,
+ *        MonocularCamera_e_BAD_CONFIG.
+ */
+genom_event
+StopCamera(bool *started, const genom_context self)
+{
+  *started = false;
+  return MonocularCamera_ether;
 }

@@ -26,15 +26,15 @@ A GenoM module for monocular camera integration.
 == Ports
 
 
-[[ImageFrame]]
-=== ImageFrame (multiple out)
+[[Frame]]
+=== Frame (multiple out)
 
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Data structure
 [disc]
- * `struct ::or::sensor::frame` `ImageFrame`
+ * `struct ::or::sensor::frame` `Frame`
  ** `struct ::or::time::ts` `ts`
  *** `long` `sec`
  *** `long` `nsec`
@@ -74,6 +74,8 @@ a|.Data structure
 
 |===
 
+The intrinsics of the camera.
+
 '''
 
 [[Extrinsics]]
@@ -96,12 +98,14 @@ a|.Data structure
 
 |===
 
+The extrinsics of the camera.
+
 '''
 
 == Services
 
-[[CameraPublish]]
-=== CameraPublish (activity)
+[[start_camera]]
+=== start_camera (activity)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
@@ -115,7 +119,32 @@ a|.Throws
  ** `short` `code`
  ** `string<128>` `message`
 
- * `exception ::MonocularCamera::e_OPENCV_ERROR`
+ * `exception ::MonocularCamera::e_BAD_CONFIG`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+a|.Context
+[disc]
+  * In task `<<publish>>`
+  (frequency 10.0 _Hz_)
+|===
+
+Start the camera.
+
+'''
+
+[[stop_camera]]
+=== stop_camera (activity)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Throws
+[disc]
+ * `exception ::MonocularCamera::e_OUT_OF_MEM`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+ * `exception ::MonocularCamera::e_BAD_IMAGE_PORT`
  ** `short` `code`
  ** `string<128>` `message`
 
@@ -132,18 +161,18 @@ a|.Context
   * Updates port `<<Extrinsics>>`
 |===
 
-Publish from Monocular Camera.
+Stop the camera.
 
 '''
 
 [[set_debug]]
-=== set_debug (function)
+=== set_debug (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
- * `boolean` `is_debug_mode` (default `"0"`) Set debug mode (default: false)
+ * `boolean` `debug` (default `"0"`) Enable debug (default: false)
 
 |===
 
@@ -152,13 +181,13 @@ Set the debug mode.
 '''
 
 [[show_image_frames]]
-=== show_image_frames (function)
+=== show_image_frames (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
- * `boolean` `show_cv_frames` (default `"0"`) Show image frames (default: false)
+ * `boolean` `show_frames` (default `"1"`) Enable image frames (default: true)
 
 |===
 
@@ -167,7 +196,7 @@ Show image frames.
 '''
 
 [[set_verbose_level]]
-=== set_verbose_level (function)
+=== set_verbose_level (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
@@ -182,13 +211,13 @@ Set the verbose level.
 '''
 
 [[set_device]]
-=== set_device (function)
+=== set_device (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
- * `string<128>` `device_id` (default `"/dev/video0"`) Device path
+ * `string<128>` `device` (default `"/dev/video0"`) Device path
 
 |===
 
@@ -228,6 +257,22 @@ Set the compression ratio.
 
 '''
 
+[[start_camera]]
+=== start_camera (function)
+
+
+Start the camera.
+
+'''
+
+[[stop_camera]]
+=== stop_camera (function)
+
+
+Stop the camera.
+
+'''
+
 == Tasks
 
 [[publish]]
@@ -238,7 +283,7 @@ Set the compression ratio.
 a|.Context
 [disc]
   * Frequency 10.0 _Hz_
-* Updates port `<<ImageFrame>>`
+* Updates port `<<Frame>>`
 * Updates port `<<Intrinsics>>`
 * Updates port `<<Extrinsics>>`
 a|.Throws
