@@ -21,6 +21,8 @@
 
 #include "or/sensor/camera.gen"
 
+// TODO: Add checkerboard detection and calibration
+// TODO: Add Intrinsics and Extrinsics
 /* -------------------------- MODULE DECLARATION --------------------------- */
 component MonocularCamera {
   version "1.0";
