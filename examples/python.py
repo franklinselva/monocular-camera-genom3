@@ -13,7 +13,7 @@ camera.set_resolution(640, 480)
 
 # Debug (Optional)
 camera.set_debug(1)
-camera.show_cv_frames(1)
+camera.show_image_frames(1)
 
 # To start the camera
 camera.start_camera()

@@ -92,7 +92,7 @@ component MonocularCamera {
     task publish;
     before stop_camera;
     after set_device, set_resolution;
-    validate check_device(ids in device);
+    validate check_device(ids in device, ids in info.started);
 
     codel<start> StartCamera(ids out info.started)
         yield ether;

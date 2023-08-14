@@ -15,8 +15,14 @@
  * MonocularCamera_e_BAD_IMAGE_PORT, MonocularCamera_e_BAD_CONFIG.
  */
 genom_event
-check_device(const char device[128], const genom_context self)
+check_device(const char device[128], bool started,
+             const genom_context self)
 {
+  if (started)
+  {
+    CODEL_LOG_ERROR("Camera already started. You cannot start it twice.");
+  }
+
   cv::VideoCapture cap(device);
   if (!cap.isOpened())
   {
