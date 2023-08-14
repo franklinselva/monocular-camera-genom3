@@ -19,7 +19,7 @@ camera.show_image_frames(1)
 camera.start_camera()
 
 # To set the compression ration
-camera.set_compression_ratio(50)  # 50%
+camera.set_compression(50)  # 50%
 
 # To get the image
 image = camera.Frame("raw")  # raw image
