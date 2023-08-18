@@ -22,7 +22,6 @@
 #include "or/sensor/camera.gen"
 
 // TODO: Add checkerboard detection and calibration
-// TODO: Add Intrinsics and Extrinsics
 /* -------------------------- MODULE DECLARATION --------------------------- */
 component MonocularCamera {
   version "1.0";
@@ -48,6 +47,7 @@ component MonocularCamera {
         or::sensor::extrinsics extrinsics;
 
         boolean started, publish_intrinsics, publish_extrinsics;
+        boolean pause_camera;
         short compression_rate;
         float hfov;
   };
@@ -102,16 +102,6 @@ component MonocularCamera {
     throws e_BAD_CONFIG;
   };
 
-  activity stop_camera() {
-    doc "Stop the camera.";
-    task publish;
-    after start_camera;
-
-    codel<start> StopCamera(ids out info.started)
-        yield ether;
-
-    throws e_BAD_CONFIG;
-  };
 
   /* ------------------ SERVICE DEFINITION: Attributes -------------------- */
   attribute set_debug(in debug = FALSE : "Enable debug (default: false)" ) {
@@ -148,5 +138,29 @@ component MonocularCamera {
   function set_compression(in short compression_percent = -1 : "Compression ration in percentage (0 - 100) (-1 for no compresstion)") {
     doc "Set the compression ratio.";
     codel SetCompression(local in compression_percent, ids out info.compression_rate);
+  };
+
+  function pause_camera() {
+    doc "Pause the camera.";
+
+    codel PauseCamera(ids out info.pause_camera);
+
+    throws e_BAD_CONFIG;
+  };
+
+  function stop_camera() {
+    doc "Stop the camera.";
+
+    codel StopCamera(ids out info.started);
+
+    throws e_BAD_CONFIG;
+  };
+
+  function resume_camera() {
+    doc "Resume the camera.";
+
+    codel ResumeCamera(ids out info.pause_camera);
+
+    throws e_BAD_CONFIG;
   };
 };

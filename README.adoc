@@ -279,6 +279,21 @@ Set the extrinsics for the camera.
 
 '''
 
+[[stop_camera]]
+=== stop_camera (attribute)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `boolean` `started` (default `"0"`) Stop the camera
+
+|===
+
+Stop the camera.
+
+'''
+
 [[set_resolution]]
 === set_resolution (function)
 
@@ -311,19 +326,54 @@ Set the compression ratio.
 
 '''
 
-[[start_camera]]
-=== start_camera (function)
+[[pause_camera]]
+=== pause_camera (function)
 
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Throws
+[disc]
+ * `exception ::MonocularCamera::e_BAD_CONFIG`
+ ** `short` `code`
+ ** `string<128>` `message`
 
-Start the camera.
+|===
+
+Pause the camera.
 
 '''
 
 [[stop_camera]]
 === stop_camera (function)
 
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Throws
+[disc]
+ * `exception ::MonocularCamera::e_BAD_CONFIG`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+|===
 
 Stop the camera.
+
+'''
+
+[[resume_camera]]
+=== resume_camera (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Throws
+[disc]
+ * `exception ::MonocularCamera::e_BAD_CONFIG`
+ ** `short` `code`
+ ** `string<128>` `message`
+
+|===
+
+Resume the camera.
 
 '''
 

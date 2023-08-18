@@ -121,3 +121,45 @@ SetCompression(int16_t compression_percent, int16_t *compression_rate,
   *compression_rate = compression_percent;
   return genom_ok;
 }
+
+/* --- Function pause_camera -------------------------------------------- */
+
+/** Codel PauseCamera of function pause_camera.
+ *
+ * Returns genom_ok.
+ * Throws MonocularCamera_e_BAD_CONFIG.
+ */
+genom_event
+PauseCamera(bool *pause_camera, const genom_context self)
+{
+  *pause_camera = true;
+  return genom_ok;
+}
+
+/* --- Function stop_camera --------------------------------------------- */
+
+/** Codel StopCamera of function stop_camera.
+ *
+ * Returns genom_ok.
+ * Throws MonocularCamera_e_BAD_CONFIG.
+ */
+genom_event
+StopCamera(bool *started, const genom_context self)
+{
+  *started = false;
+  return genom_ok;
+}
+
+/* --- Function resume_camera ------------------------------------------- */
+
+/** Codel ResumeCamera of function resume_camera.
+ *
+ * Returns genom_ok.
+ * Throws MonocularCamera_e_BAD_CONFIG.
+ */
+genom_event
+ResumeCamera(bool *pause_camera, const genom_context self)
+{
+  *pause_camera = false;
+  return genom_ok;
+}

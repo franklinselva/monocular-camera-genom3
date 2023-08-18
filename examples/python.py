@@ -31,5 +31,9 @@ image = camera.Frame("compress")  # compressed image
 intrinsics = camera.Intrinsics()  # camera intrinsics
 extrinsics = camera.Extrinsics()  # camera extrinsics
 
+# To pause / resume camera
+camera.pause_camera()
+camera.resume_camera()
+
 # To stop the camera
 camera.stop_camera()

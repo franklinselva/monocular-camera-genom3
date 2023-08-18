@@ -84,6 +84,25 @@ camera_publish(const MonocularCamera_CameraInfo *info,
                bool show_frames, bool debug, const genom_context self)
 {
 
+  if (!info->started)
+  {
+    if (debug)
+    {
+      CODEL_LOG_WARNING("Camera not started / stopped");
+    }
+    cv::destroyAllWindows();
+    return MonocularCamera_ether;
+  }
+
+  if (info->pause_camera)
+  {
+    if (debug)
+    {
+      CODEL_LOG_WARNING("Camera paused");
+    }
+    return MonocularCamera_pause_pub;
+  }
+
   or_sensor_frame *raw_frame = Frame->data("raw", self);
   or_sensor_frame *compress_frame = Frame->data("compress", self);
 
@@ -183,22 +202,5 @@ genom_event
 StartCamera(bool *started, const genom_context self)
 {
   *started = true;
-  return MonocularCamera_ether;
-}
-
-/* --- Activity stop_camera --------------------------------------------- */
-
-/** Codel StopCamera of activity stop_camera.
- *
- * Triggered by MonocularCamera_start.
- * Yields to MonocularCamera_ether.
- * Throws MonocularCamera_e_OUT_OF_MEM,
- *        MonocularCamera_e_BAD_IMAGE_PORT,
- *        MonocularCamera_e_BAD_CONFIG.
- */
-genom_event
-StopCamera(bool *started, const genom_context self)
-{
-  *started = false;
   return MonocularCamera_ether;
 }
