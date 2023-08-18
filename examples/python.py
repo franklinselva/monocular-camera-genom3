@@ -22,7 +22,7 @@ camera.start_camera()
 camera.set_compression(50)  # 50%
 
 # To set the intrinsics and extrinsics
-camera.set_instrinsics()  # Only after this, the instrincs port will be available
+camera.set_intrinsics()  # Only after this, the instrincs port will be available
 camera.set_extrinsics()  # Only after this, the extrinsics port will be available
 
 # To get the image
