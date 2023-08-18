@@ -137,6 +137,22 @@ camera_publish(const MonocularCamera_CameraInfo *info,
     compress_frame->ts.nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 1000000000;
   }
 
+  // Publish intrinsics
+  if (info->publish_intrinsics)
+  {
+    Intrinsics->data(self)->calib = info->intrinsics.calib;
+    Intrinsics->data(self)->disto = info->intrinsics.disto;
+    Intrinsics->write(self);
+  }
+
+  // Publish extrinsics
+  if (info->publish_extrinsics)
+  {
+    Extrinsics->data(self)->rot = info->extrinsics.rot;
+    Extrinsics->data(self)->trans = info->extrinsics.trans;
+    Extrinsics->write(self);
+  }
+
   if (show_frames)
   {
     cv::imshow("frame", frame);

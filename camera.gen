@@ -44,8 +44,10 @@ component MonocularCamera {
         } size;
         unsigned short frequency;
         string<8> format;   // Y8, Y16, RBG8, RGBA8...
+        or::sensor::intrinsics intrinsics;
+        or::sensor::extrinsics extrinsics;
 
-        boolean started;
+        boolean started, publish_intrinsics, publish_extrinsics;
         short compression_rate;
         float hfov;
   };
@@ -126,6 +128,14 @@ component MonocularCamera {
 
   attribute set_device(in device = "/dev/video0" : "Device path") {
     doc "Set the device path.";
+  };
+
+  attribute set_intrinsics(in info.intrinsics =: "Intrinsics", in info.publish_intrinsics = FALSE : "Publish intrinsics") {
+    doc "Set the intrinsics for the camera.";
+  };
+
+  attribute set_extrinsics(in info.extrinsics =: "Extrinsics", in info.publish_extrinsics = FALSE : "Publish extrinsics") {
+    doc "Set the extrinsics for the camera.";
   };
 
   /* ------------------ SERVICE DEFINITION: Functions -------------------- */

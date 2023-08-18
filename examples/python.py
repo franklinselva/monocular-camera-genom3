@@ -21,9 +21,15 @@ camera.start_camera()
 # To set the compression ration
 camera.set_compression(50)  # 50%
 
+# To set the intrinsics and extrinsics
+camera.set_instrinsics()  # Only after this, the instrincs port will be available
+camera.set_extrinsics()  # Only after this, the extrinsics port will be available
+
 # To get the image
 image = camera.Frame("raw")  # raw image
 image = camera.Frame("compress")  # compressed image
+intrinsics = camera.Intrinsics()  # camera intrinsics
+extrinsics = camera.Extrinsics()  # camera extrinsics
 
 # To stop the camera
 camera.stop_camera()
